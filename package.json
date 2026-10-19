@@ -1,0 +1,10 @@
+{
+  "name": "bokrah-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Arabic and English landing page for Bokrah restaurant accounting",
+  "scripts": {
+    "dev": "node server.cjs",
+    "check": "node --check dist/landing.js && node --check dist/app.js && node check.cjs"
+  }
+}

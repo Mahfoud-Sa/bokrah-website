@@ -1,0 +1,17 @@
+const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
+const elements=new Map();const element=()=>({innerHTML:'',textContent:'',value:'',style:{},classList:{toggle(){}},elements:{type:{value:'sale'},category:{},name:{},currency:{}},reset(){},showModal(){},close(){}});
+const get=s=>{if(!elements.has(s))elements.set(s,element());return elements.get(s)};
+let saved;const context=vm.createContext({document:{querySelector:get,querySelectorAll:()=>[],addEventListener(){}},localStorage:{getItem:()=>null,setItem:(k,v)=>saved=v},crypto:require('node:crypto').webcrypto,Intl,Date,console,setTimeout,clearTimeout,window:{scrollTo(){},print(){}},confirm:()=>true,URL,Blob});
+vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);
+assert.ok(get('#stats').innerHTML.includes('Total sales'));
+assert.ok(get('#recent-table').innerHTML.includes('<table>'));
+assert.ok(JSON.parse(saved).entries.length>0);
+vm.runInContext("state.entries=[{id:'a',type:'sale',amount:100,date:today,description:'<script>',category:'Dine-in',payment:'Card'},{id:'b',type:'expense',amount:25,date:today,description:'Produce',category:'Ingredients',payment:'Cash'}];render();navigate('reports')",context);
+assert.ok(get('#report-body').innerHTML.includes('75.00'));
+assert.ok(get('#recent-table').innerHTML.includes('&lt;script&gt;'));
+get('#search').value='Produce';vm.runInContext("navigate('expenses')",context);
+assert.ok(get('#ledger-table').innerHTML.includes('Produce'));
+assert.ok(!get('#ledger-table').innerHTML.includes('&lt;script&gt;'));
+vm.runInContext("state.entries=[];render()",context);
+assert.ok(get('#recent-table').innerHTML.includes('No transactions yet'));
+console.log('Passed: dashboard render, storage, totals, escaping, expense filtering, empty state.');
